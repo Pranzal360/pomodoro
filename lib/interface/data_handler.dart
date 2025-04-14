@@ -5,18 +5,18 @@ const pomodoroBox = "pomodoro_box";
 const userSettings = "user_settings";
 const userSessions = "user_sessions";
 
-final _storageBox = Hive.box(pomodoroBox);
-List userSettingsTable = _storageBox.get(userSettings) ?? [];
-List userSessionsTable = _storageBox.get(userSessions) ?? [];
+// Do NOT initialize storage or tables here — wait until Hive is ready in main()
 
 void updateSettings(Map<String, dynamic> updated) {
-  userSettingsTable = [updated];
-  _saveToDatabase(tableName: userSettings, data: userSettingsTable);
+  final box = Hive.box(pomodoroBox);
+  box.put(userSettings, [updated]);
 }
 
 void addSession({required String logText, required int duration}) {
-  final now = DateTime.now();
+  final box = Hive.box(pomodoroBox);
+  List sessions = box.get(userSessions, defaultValue: []);
 
+  final now = DateTime.now();
   Map<String, dynamic> newSession = {
     "date": {
       DateMeasures.year.toString(): now.year,
@@ -28,36 +28,44 @@ void addSession({required String logText, required int duration}) {
     "mode": logText,
     "duration": duration,
   };
-  userSessionsTable.add(newSession);
-  _saveToDatabase(tableName: userSessions, data: userSessionsTable);
+
+  sessions.add(newSession);
+  box.put(userSessions, sessions);
 }
 
 void editSession({
   required Map<String, dynamic> old,
   required Map<String, dynamic> updated,
 }) {
-  int index = userSessionsTable.indexOf(old);
-  userSessionsTable.remove(old);
-  userSessionsTable.insert(index, updated);
+  final box = Hive.box(pomodoroBox);
+  List sessions = box.get(userSessions, defaultValue: []);
+
+  int index = sessions.indexOf(old);
+  if (index != -1) {
+    sessions[index] = updated;
+    box.put(userSessions, sessions);
+  }
 }
 
 void deleteSession(Map<String, dynamic> session) {
-  userSessionsTable.remove(session);
+  final box = Hive.box(pomodoroBox);
+  List sessions = box.get(userSessions, defaultValue: []);
+  sessions.remove(session);
+  box.put(userSessions, sessions);
 }
 
 void logUserSettings(Map<String, dynamic> userProfile) {
-  _saveToDatabase(tableName: userSettings, data: [userProfile]);
+  final box = Hive.box(pomodoroBox);
+  box.put(userSettings, [userProfile]);
 }
 
 Map getUserSettings() {
-  return userSettingsTable[0];
+  final box = Hive.box(pomodoroBox);
+  List settings = box.get(userSettings, defaultValue: []);
+  return settings.isNotEmpty ? settings[0] : {};
 }
 
 List getUserSessions() {
-  return userSessionsTable;
-}
-
-// Basic Functions
-void _saveToDatabase({required String tableName, required List data}) {
-  _storageBox.put(tableName, data);
+  final box = Hive.box(pomodoroBox);
+  return box.get(userSessions, defaultValue: []);
 }

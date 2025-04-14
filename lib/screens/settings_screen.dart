@@ -3,6 +3,11 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:pomodoro/interface/data_handler.dart';
 import 'package:pomodoro/models/user.dart';
 
+const Color kPremiumPrimary = Colors.black;
+const Color kPremiumAccent = Colors.white;
+const Color kCardColor = Colors.white;
+const Color kBackground = Color(0xFFF8F6FA);
+
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -13,10 +18,10 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final previousData = getUserSettings();
 
-  Color workBg = Colors.green;
-  Color workFg = Colors.white;
-  Color restBg = Colors.blue;
-  Color restFg = Colors.white;
+  Color workBg = Colors.white;
+  Color workFg = Colors.black;
+  Color restBg = Colors.white;
+  Color restFg = Colors.black;
 
   @override
   void initState() {
@@ -28,11 +33,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Color _getColor(String? hex) {
-    if (hex == null || hex.isEmpty) return Colors.grey.shade400;
+    if (hex == null || hex.isEmpty) return Colors.grey.shade300;
     try {
       return Color(int.parse(hex.replaceFirst("#", "ff"), radix: 16));
     } catch (e) {
-      return Colors.grey.shade400;
+      return Colors.grey.shade300;
     }
   }
 
@@ -45,6 +50,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: kBackground,
           title: const Text("Pick a color"),
           content: SingleChildScrollView(
             child: ColorPicker(
@@ -78,21 +84,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.of(context).pop();
   }
 
+  void _resetToDefaults() {
+    setState(() {
+      workBg = Colors.white;
+      workFg = Colors.black;
+      restBg = Colors.white;
+      restFg = Colors.black;
+    });
+  }
+
   Widget _colorRow(String label, Color color, void Function(Color) onPick) {
     return InkWell(
       onTap: () => _openColorPicker(color, onPick),
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          color: kCardColor,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 2),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             )
           ],
         ),
@@ -102,20 +117,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
             Container(
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.grey.shade400,
-                  width: color == Colors.white ? 1.5 : 0.2,
+                  color: color.computeLuminance() > 0.8
+                      ? Colors.grey.shade400
+                      : Colors.transparent,
+                  width: 1.2,
                 ),
               ),
             ),
@@ -128,16 +145,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F6FA),
+      backgroundColor: kBackground,
       appBar: AppBar(
         title: const Text("Customize Colors"),
-        backgroundColor: const Color(0xFF35AE73), // Custom green
-        foregroundColor: Colors.white,
+        backgroundColor: kPremiumPrimary,
+        foregroundColor: kPremiumAccent,
         elevation: 0,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+        child: Padding(
+          padding: const EdgeInsets.all(22),
           child: Column(
             children: [
               _colorRow("Work Background", workBg, (c) => setState(() => workBg = c)),
@@ -153,21 +170,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   label: const Text("Save Settings"),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFF35AE73),
-                    foregroundColor: Colors.white,
+                    backgroundColor: kPremiumPrimary,
+                    foregroundColor: kPremiumAccent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    elevation: 3,
+                    elevation: 4,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text(
                   "Cancel",
                   style: TextStyle(fontSize: 16, color: Colors.purple),
+                ),
+              ),
+              TextButton(
+                onPressed: _resetToDefaults,
+                child: const Text(
+                  "Reset to Defaults",
+                  style: TextStyle(fontSize: 16, color: Colors.blueGrey),
                 ),
               ),
             ],
