@@ -19,6 +19,7 @@ dependencies:
   lucide_icons: ^0.257.0
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.1
   flutter_test:
     sdk: flutter
 
@@ -26,6 +27,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+flutter_launcher_icons:
+  android:true
+  ios:true
+  image_path:"assets/icon.png"
 
   # Add your assets here (uncomment and add images when needed)
   # assets:
